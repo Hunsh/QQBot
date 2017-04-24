@@ -1,6 +1,7 @@
 package com.hunsh.qqbot.login;
 
 import com.hunsh.qqbot.contant.Constants;
+import org.apache.commons.lang.StringUtils;
 
 import javax.imageio.ImageIO;
 import javax.servlet.ServletContextEvent;
@@ -9,6 +10,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Jdz on 2017/4/23.
@@ -32,8 +35,36 @@ public class LoginListener implements ServletContextListener {
             BufferedImage image = ImageIO.read(conn.getInputStream());
 
             String osName = System.getProperty("os.name");
+            if(osName.contains ("Windows")){
+                ImageIO.write(image, "jpg", new File(Constants.QR_LOCALE_WINDOWS));
+            }else if(osName.contains ("Mac")){
+                ImageIO.write(image, "jpg", new File(Constants.QR_LOCALE_MAC));
+            }
 
-            ImageIO.write(image, "jpg", new File(Constants.QR_LOCALE_WINDOWS));
+            String sessionVal = "";
+            String cookieVal = "";
+            String key = null;
+
+            for(int i = 1; (key = conn.getHeaderFieldKey(i)) != null; i++){
+                //System.out.println("key: "+key+"; value: "+conn.getHeaderField(i));
+                if(key.equalsIgnoreCase("set-cookie")){
+                    cookieVal = conn.getHeaderField(i);
+                    cookieVal = cookieVal.substring(0, cookieVal.indexOf(";"));
+
+                    //sessionVal = sessionVal + cookieVal + ";";
+                }
+            }
+
+
+            if(StringUtils.isNotBlank(sessionVal)){
+                //String[] cookieArray = sessionVal.split(";")
+
+
+
+
+            }
+
+
         } catch (Exception e) {
 
 
