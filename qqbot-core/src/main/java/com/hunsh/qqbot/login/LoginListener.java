@@ -23,7 +23,7 @@ public class LoginListener implements ServletContextListener {
     public void contextInitialized(ServletContextEvent servletContextEvent) {
         System.out.println("-------------------QQBot init");
         try {
-            URL url = new URL(Constants.FETCH_QR_URL + Math.pow(Math.random(), 18d));
+            URL url = new URL(Constants.ApiURL.GET_QR_CODE.getUrl() + Math.pow(Math.random(), 18d));
 
             URLConnection conn = url.openConnection();
 
@@ -54,7 +54,6 @@ public class LoginListener implements ServletContextListener {
                     //sessionVal = sessionVal + cookieVal + ";";
                 }
             }
-
 
             if(StringUtils.isNotBlank(sessionVal)){
                 //String[] cookieArray = sessionVal.split(";")
