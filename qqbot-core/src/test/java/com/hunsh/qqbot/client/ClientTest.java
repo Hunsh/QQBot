@@ -9,7 +9,10 @@ import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
+import net.dongliu.requests.RawResponse;
+import net.dongliu.requests.Requests;
 import net.dongliu.requests.Response;
+import net.dongliu.requests.Session;
 import org.junit.Test;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -17,13 +20,12 @@ import org.reactivestreams.Subscription;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.*;
+
+import static com.sun.xml.internal.ws.spi.db.BindingContextFactory.LOGGER;
 
 
 /**
@@ -126,43 +128,74 @@ public class ClientTest {
 
     @Test
     public void test3(){
+        System.out.println(System.getProperty("os.name"));
+        System.out.println(new QRClient().getOs());
         System.out.println(Utils.hash33("FMnJkfPaA0XmAnIvGVkXxWRV1MXj6xqRsaJLZ3mbmD7qB7YQtOS1nZQrdGFwNruk"));
     }
 
     @Test
     public void test4(){
-        LOGGER.debug("开始获取二维码");
+        LOGGER.info("开始获取二维码");
 
-        String filePath;
-        try {
-            filePath = (new File("qrcode.png")).getCanonicalPath();
-        } catch (IOException var6) {
-            throw new IllegalStateException("二维码保存失败");
-        }
+        Session session = Requests.session();
 
-        Response response = ((HeadOnlyRequestBuilder)this.session.get(ApiURL.GET_QR_CODE.getUrl()).addHeader("User-Agent", "Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.101 Safari/537.36")).file(filePath);
-        Iterator desk = response.getCookies().iterator();
+        Map<String, Object> headers = new HashMap();
+        headers.put("User-Agent", "Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.101 Safari/537.36");
 
-        while(desk.hasNext()) {
-            Cookie e = (Cookie)desk.next();
-            if(Objects.equals(e.getName(), "qrsig")) {
-                this.qrsig = (String)e.getValue();
-                break;
+        Map map = new HashMap();
+        map.put("qrsig", "");
+        RawResponse response = session.get(Constants.ApiURL.GET_QR_CODE.getUrl())
+                .headers(headers)
+                .send();
+        response.getCookies().forEach(cookie ->{
+            System.out.println("cookie:"+cookie.getValue());
+            if(Objects.equals(cookie.getName(), "qrsig")) {
+                map.put("qrsig", cookie.getValue());
             }
-        }
+        });
 
-        LOGGER.info("二维码已保存在 " + filePath + " 文件中，请打开手机QQ并扫描二维码");
+        response.writeToFile(Constants.QR_LOCALE_MAC);
+
+        LOGGER.info("二维码已保存在 " + Constants.QR_LOCALE_MAC + " 文件中，请打开手机QQ并扫描二维码");
         Desktop desk1 = Desktop.getDesktop();
 
         try {
-            File e1 = new File(filePath);
+            File e1 = new File(Constants.QR_LOCALE_MAC);
             desk1.open(e1);
         } catch (Exception var5) {
             var5.printStackTrace();
         }
 
+        Map<String, Object> headers2 = new HashMap();
+        headers2.put("User-Agent", "Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.101 Safari/537.36");
+        headers2.put("Referer", Constants.ApiURL.VERIFY_QR_CODE.getReferer());
+
+
+        Observable.just((String)map.get("qrsig"))
+                //.subscribeOn(Schedulers.newThread())
+                .subscribe(new Consumer<String>() {
+            @Override
+            public void accept(String qrsig) throws Exception {
+                System.out.println(qrsig);
+                for(int i =0; i< 5; i++){
+                    System.out.println("result:"+session.get(Constants.ApiURL.VERIFY_QR_CODE.getUrl().replace("{1}", String.valueOf(Utils.hash33(qrsig)))).headers(headers2).send().readToText());
+                    Thread.sleep(100);
+                }
+            }
+        });
+    }
+
+
+    @Test
+    public void test5(){
+        QRClient qrClient = new QRClient();
+
+        QRClient.QRInitClient initClient = qrClient.new QRInitClient();
+
+        initClient.run();
 
 
 
     }
+
 }
