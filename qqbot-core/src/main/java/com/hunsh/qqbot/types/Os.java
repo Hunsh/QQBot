@@ -1,4 +1,4 @@
-package com.hunsh.qqbot.entity;
+package com.hunsh.qqbot.types;
 
 /**
  * @Author : Edward Jia
@@ -6,12 +6,12 @@ package com.hunsh.qqbot.entity;
  * @Date : 17/4/26
  * @Version :
  */
-public enum  Os {
+public enum Os {
     Mac("Mac"),
     Windows("Windows");
 
     private String osName;
-    Os (String osName){
+    Os(String osName){
         this.osName = osName;
     }
 

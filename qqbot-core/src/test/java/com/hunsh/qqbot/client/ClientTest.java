@@ -190,9 +190,12 @@ public class ClientTest {
     public void test5(){
         QRClient qrClient = new QRClient();
 
-        QRClient.QRInitClient initClient = qrClient.new QRInitClient();
+        try{
+            qrClient.init();
+        }catch(Exception e){
 
-        initClient.run();
+        }
+
 
 
 
